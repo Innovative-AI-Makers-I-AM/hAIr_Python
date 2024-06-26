@@ -1,6 +1,3 @@
 langchain
 langchain_community
-openai
-flask
-fastapi
-langchain-openai
+python-dotenv
