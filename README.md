@@ -1,4 +1,4 @@
-환경 구성 명령어
+# 환경 구성 명령어
 
 conda create -n iam_proj python=3.10 
 
