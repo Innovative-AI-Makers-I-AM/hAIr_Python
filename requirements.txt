@@ -1,3 +1,10 @@
 langchain
 langchain_community
 python-dotenv
+transformers
+opencv-python
+dlib
+imutils
+diffusers
+accelerate
+numpy==1.26.4
