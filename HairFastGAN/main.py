@@ -19,8 +19,11 @@ def load_model(model_args):
 
 # 이미지를 불러와서 전처리하는 함수 정의
 def preprocess_image(image_path):
+    # 이미지 RGB 로 변환
     image = Image.open(image_path).convert('RGB')
+    # RGB로 변환된 이미지 numpy배열로 변환
     image = np.array(image)
+    # numpy배열로 변환된 이미지 torch.Tensor로 변환
     image = torch.from_numpy(image).permute(2, 0, 1).float() / 255.0
     return image.unsqueeze(0)  # 배치 차원 추가
 
