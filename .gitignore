@@ -1,3 +1,5 @@
 # .env 파일 제외
 .env
 *.sh
+/pretrained_models/
+__pycache__/
