@@ -3,6 +3,7 @@ langchain_community
 python-dotenv
 transformers
 opencv-python
+cmake
 dlib
 imutils
 diffusers
