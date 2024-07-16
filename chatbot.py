@@ -10,7 +10,7 @@ load_dotenv()
 # OpenAI API 키 설정
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
-# 초기 프롬프트 템플릿 설정 (한국어)
+# 초기 프롬프트 템플릿 설정 (한국어) 사용자가 처음 입력한 텍스트에 대해 응답하는 템플릿
 initial_prompt_template = PromptTemplate(
     input_variables=["input_text"],
     template=(
@@ -21,7 +21,7 @@ initial_prompt_template = PromptTemplate(
     )
 )
 
-# 대화 지속을 위한 프롬프트 템플릿
+# 대화 지속을 위한 프롬프트 템플릿 대화가 계속될 때, 이전 대화 내용을 포함하여 응답하는 템플릿
 ongoing_prompt_template = PromptTemplate(
     input_variables=["conversation_history", "input_text"],
     template=(
@@ -48,6 +48,7 @@ llm_chain = LLMChain(
     prompt=initial_prompt_template
 )
 
+# 대화 이력을 저장하기 위한 conversation_history 리스트 초기화
 conversation_history = []
 
 def chat():
