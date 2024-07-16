@@ -95,3 +95,7 @@ print("크롤링 완료 및 CSV 파일 저장 완료.")
 # loaded_df = pd.read_csv('hairstyles.csv')
 # print("\nCSV 파일 내용 (저장된 파일에서 로드):")
 # print(loaded_df.to_string(index=False))
+
+
+
+
