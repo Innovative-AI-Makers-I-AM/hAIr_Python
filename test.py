@@ -2,7 +2,9 @@ import csv
 from sentence_transformers import SentenceTransformer, util
 from chromadb import PersistentClient
 from langchain.text_splitter import CharacterTextSplitter
+import os
 import json
+from docx import Document as DataDocument
 
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAI
@@ -10,6 +12,11 @@ from langchain.chains import retrieval, combine_documents
 from langchain.prompts import PromptTemplate
 from langchain_core.documents import Document  # 문서 객체 가져오기
 
+# TXT 파일을 읽어서 텍스트 데이터를 추출
+def read_txt(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return file.read()
+    
 
 # 모델 및 ChromaDB 설정 함수
 def initialize_model():
@@ -23,14 +30,14 @@ def initialize_model():
 #     try:
 #         client.delete_collection(name=collection_name)
 #         print(f'기존 컬렉션 {collection_name}을 삭제했습니다.')
-#     except Exception as e:
+#     except Exception as e: 
 #         print(f'컬렉션 삭제 중 오류 발생: {e}')
 
 #     collection = client.create_collection(name=collection_name)
 #     print(f'새 컬렉션 {collection_name}을 생성했습니다.')
 #     return collection
 
-def initialize_chromadb(collection_name='hairstyle_json_embeddings'):
+def initialize_chromadb(collection_name='test_embeddings'):
     client = PersistentClient()
     collections = client.list_collections()
     collection_names = [coll.name for coll in collections]
@@ -45,27 +52,12 @@ def initialize_chromadb(collection_name='hairstyle_json_embeddings'):
     
     return collection
 
-# JSON 파일 로드 함수
-def load_json(file_path):
-    with open(file_path, mode='r', encoding='utf-8') as jsonfile:
-        data = json.load(jsonfile)
-    return data
-
 # None 값을 빈 문자열로 변환하는 함수
 def clean_metadata(metadata):
     for key, value in metadata.items():
         if value is None:
             metadata[key] = ""
     return metadata
-
-# # CSV 파일 로드 함수
-# def load_csv(file_path):
-#     hairstyles = []
-#     with open(file_path, mode='r', encoding='utf-8') as csvfile:
-#         csv_reader = csv.DictReader(csvfile)
-#         for row in csv_reader:
-#             hairstyles.append(row)
-#     return hairstyles
 
 # chunk 로 데이터 자르기
 def chunk_texts(texts, chunk_size=300, chunk_overlap=20):
@@ -77,20 +69,29 @@ def chunk_texts(texts, chunk_size=300, chunk_overlap=20):
     return chunked_texts
 
 # 텍스트 임베딩 및 데이터 추가 함수
-def embed_and_add_to_chromadb(model, collection, hairstyles):
-    texts = [f"image_id:{hairstyle['image_id']}\nsex:{hairstyle['sex']}\nlenght:{hairstyle['lenght']}\nstyle:{hairstyle['style']}\nhashtag1:{hairstyle['hashtag1']}\nhashtag2:{hairstyle['hashtag2']}\nhashtag3:{hairstyle['hashtag3']}" for hairstyle in hairstyles]
-    chunked_texts = chunk_texts(texts)
-    embeddings = model.encode(chunked_texts)
+def embed_and_add_to_chromadb(model, collection, file_paths):
+    all_chunks = []
+    all_metadatas = []
+
+    for file_path in file_paths:
+        text = read_txt(file_path)
+        chunks = chunk_texts([text])
+        all_chunks.extend(chunks)
+        # 각 chunk에 파일명을 메타데이터로 포함
+        style = os.path.basename(file_path).split('.')[0]  # 파일명에서 확장자 제거
+        metadatas = [{'description': chunk, 'style': style} for chunk in chunks]
+        all_metadatas.extend(metadatas)
+
+    embeddings = model.encode(all_chunks)
     ids = [str(i) for i in range(len(embeddings))]
-    metadatas = [clean_metadata({'image_id': hairstyle['image_id'], 'sex': hairstyle['sex'], 'lenght': hairstyle['lenght'], 'style': hairstyle['style'], 'hashtag1': hairstyle['hashtag1'], 'hashtag2': hairstyle['hashtag2'], 'hashtag3': hairstyle['hashtag3']}) for hairstyle in hairstyles]
     collection.add(
-        documents=chunked_texts,
+        documents=all_chunks,
         embeddings=embeddings,
-        metadatas=metadatas,
-        ids=ids,
+        metadatas=all_metadatas,
+        ids=ids
     )
-    print('\n 임베딩 데이터 추가')
-    return embeddings, texts
+    print('\n임베딩 데이터 추가')
+    return embeddings, all_chunks
 
 
 # 데이터 확인 함수
@@ -107,7 +108,7 @@ def print_stored_data(collection):
         print("---")
 
 # 유사도 계산 함수
-def find_most_similar(query, model, collection, top_k=3):
+def find_most_similar(query, model, collection, top_k=5):
     query_embedding = model.encode(query)
     stored_data = collection.get(include=["documents", "embeddings", "metadatas"])
     
@@ -131,12 +132,20 @@ def find_most_similar(query, model, collection, top_k=3):
 
 # LLM 설정
 def initialize_llm(api_key):
-    return OpenAI(api_key=api_key)
+    return OpenAI(api_key=api_key, max_tokens=150, temperature=0.7, top_p=0.9)
 
 def generate_response(llm, context, question):
     qa_prompt = PromptTemplate(
         input_variables=["context", "question"],
-        template="Context: {context}\n\nQuestion: {question}\n\nAnswer:"
+        template="""
+        Context:
+          {context}
+          
+        \n\nQuestion:
+          {question}
+
+        \n\nAnswer:
+        """
         )
     combine_docs_chain = combine_documents.create_stuff_documents_chain(llm, qa_prompt)
     # qa_chain = retrieval.create_retrieval_chain(retriever=None, combine_docs_chain=combine_docs_chain)  # retriever=None for direct input
@@ -145,28 +154,6 @@ def generate_response(llm, context, question):
     result = combine_docs_chain.invoke({"context": documents, "question": question})
     return result
 
-# # 유사도 계산 함수
-# def find_most_similar(query, model, collection, top_k=5):
-#     query_embedding = model.encode(query)
-#     stored_data = collection.get(include=["documents", "embeddings", "metadatas"])
-    
-#     max_similarity = -1
-#     most_similar_doc = None
-    
-#     for i in range(len(stored_data['embeddings'])):
-#         stored_embedding = stored_data['embeddings'][i]
-#         similarity = util.pytorch_cos_sim(query_embedding, stored_embedding).item()
-        
-#         if similarity > max_similarity:
-#             max_similarity = similarity
-#             most_similar_doc = {
-#                 "id": stored_data['ids'][i],
-#                 "document": stored_data['documents'][i],
-#                 "metadata": stored_data['metadatas'][i],
-#                 "similarity": similarity
-#             }
-    
-#     return most_similar_doc
 
 # # 리트리버 초기화
 # def initialize_retriever(collection_name, model):
@@ -212,51 +199,41 @@ if __name__ == "__main__":
     # collection = reset_chromadb()
     collection = initialize_chromadb()
 
-    # json 파일 로드
-    file_path = 'hairstyles.json'
-    hairstyles = load_json(file_path)
-    print(f'문서의 수: {len(hairstyles)}')
+    # txt 파일 로드
+    txt_files = ['data/리프컷.txt', 'data/히피펌.txt']
+    # texts = [read_txt(file) for file in txt_files]
 
     # 컬렉션에 데이터가 없으면 JSON 파일에서 데이터를 로드하고 저장
     if collection.count() == 0:
-        file_path = 'hairstyles.json'
-        hairstyles = load_json(file_path)
-        print(f'문서의 수: {len(hairstyles)}')
 
         # 텍스트 임베딩 및 ChromaDB에 데이터 추가
-        embeddings, texts = embed_and_add_to_chromadb(model, collection, hairstyles)
+        embeddings, texts = embed_and_add_to_chromadb(model, collection, txt_files)
     else:
         print("컬렉션에 데이터가 이미 존재합니다.")
 
-    # # 컬렉션에 저장된 데이터 확인
-    # print_stored_data(collection)
+    # 컬렉션에 저장된 데이터 확인
+    print_stored_data(collection)
 
-    # # 예제 쿼리 검색
-    # query = "나는 머리가 길어서 레이어드컷 해보고 싶어, 짧은머리 말고 긴머리로 추천해줘"
-    # most_similar_hairstyles = find_most_similar(query, model, collection)
-    # if most_similar_hairstyles:
-    #     print(f"가장 유사한 스타일 5가지:")
-    #     for idx, hairstyle in enumerate(most_similar_hairstyles):
-    #         print(f"\n유사도 {idx + 1}: {hairstyle}")
-    # else:
-    #     print(f"{query}와 유사한 스타일을 찾을 수 없습니다.")
+    # 예제 쿼리 검색
+    query = "나 여름이어서 좀 상큼하게 머리 스타일 변경하고 싶어 그런데 나는 긴머리는 유지하고 싶어"
+    most_similar_hairstyles = find_most_similar(query, model, collection)
+    if most_similar_hairstyles:
+        print(f"가장 유사한 스타일:")
+        for idx, hairstyle in enumerate(most_similar_hairstyles):
+            print(f"\n유사도 {idx + 1}: {hairstyle}")
 
-    # # 예제 쿼리 검색
-    # query = "나 단발하고 싶어"
-    # most_similar_hairstyles = find_most_similar(query, model, collection)
-    # if most_similar_hairstyles:
-    #     print(f"가장 유사한 스타일 3가지:")
-    #     for idx, hairstyle in enumerate(most_similar_hairstyles):
-    #         print(f"\n유사도 {idx + 1}: {hairstyle}")
-
-    #     context = "\n".join([f"{hairstyle['metadata']['style']}: {hairstyle['document']}" for hairstyle in most_similar_hairstyles])
-    #     question = "뽑아준 스타일과 함께 사용자에게 어울리는 머리 스타일 추천하는 형식으로 말해줘"
+        context = "\n".join([f"{hairstyle['metadata']['description']}: {hairstyle['document']}" for hairstyle in most_similar_hairstyles])
+        question = """
+        쓸데없는 꾸밈말은 삼가주세요.
+        사용자 요청 사항에 맞게 머리 스타일에 대해서 추천해주세요.
+          그리고 요청 사항과 맞는 또다른 머리 스타일이 존재한다면 그것도 알려주세요.
+          그리고 답변은 100자 이내로 요약해서 답해주세요."""
         
-    #     llm = initialize_llm(api_key='openai api key')  # 여기에 OpenAI API 키를 입력하세요.
-    #     response = generate_response(llm, context, question)
-    #     print(f"\nAnswer: {response}")
-    # else:
-    #     print(f"{query}와 유사한 스타일을 찾을 수 없습니다.")
+        llm = initialize_llm(api_key='open api key')  # 여기에 OpenAI API 키를 입력하세요.
+        response = generate_response(llm, context, question)
+        print(f"\nAnswer: {response}")
+    else:
+        print(f"{query}와 유사한 스타일을 찾을 수 없습니다.")
 
 
     # # 리트리버 초기화
@@ -284,5 +261,3 @@ if __name__ == "__main__":
     #   print(f"\nAnswer: {result}")
     # else:
     #     print(f"{question}의 질문과 유사한 스타일을 찾을 수 없어 답변을 생성할 수 없습니다.")
-
-
