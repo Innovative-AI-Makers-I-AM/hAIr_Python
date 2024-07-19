@@ -5,3 +5,6 @@
 # images 경로 제외
 /images/*
 /__pycache__/*
+
+/chroma/*
+/data/*
