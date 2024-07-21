@@ -12,7 +12,11 @@ image_descriptions.csv
 blip.py
 opencv.py
 HairFastGAN/
-
+hairstyles_female.csv
+hairstyles_male.csv
+chroma_db/
+images_female/
+images_male/
 
 output/
 CelebA/
