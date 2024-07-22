@@ -1,89 +1,48 @@
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
-from langchain_community.llms import OpenAI  # 올바른 경로로 가져오기
 import os
 from dotenv import load_dotenv
+from data_processing import load_and_split_documents
+from vector_store import create_vector_store, load_vector_store
+from llm_setup import setup_llm_and_retrieval_qa
+from chat import run_chatbot
 
 # .env 파일 로드
 load_dotenv()
 
-# OpenAI API 키 설정
-openai_api_key = os.getenv("OPENAI_API_KEY")
+# 환경 변수에서 OpenAI API 키 설정
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
-# 초기 프롬프트 템플릿 설정 (한국어)
-initial_prompt_template = PromptTemplate(
-    input_variables=["input_text"],
-    template=(
-        "당신은 전문 헤어 디자이너입니다. 사용자가 미용실에 있는 것처럼 대화를 나누세요. "
-        "사용자의 질문에만 답변하고, 전문 헤어 디자이너처럼 대화 해주세요. "
-        "사용자: {input_text}\n"
-        "전문 헤어 디자이너:"
-    )
-)
+def main():
+    # 벡터 데이터베이스 디렉토리 설정
+    persist_directory = "./chroma_db"
+    collection_metadata = {'hnsw:space': 'cosine'}
+    model_name = "snunlp/KR-SBERT-V40K-klueNLI-augSTS"
 
-# 대화 지속을 위한 프롬프트 템플릿
-ongoing_prompt_template = PromptTemplate(
-    input_variables=["conversation_history", "input_text"],
-    template=(
-        "당신은 전문 헤어 디자이너입니다. 다음은 사용자와의 대화 내용입니다:\n"
-        "{conversation_history}\n"
-        "사용자: {input_text}\n"
-        "전문 헤어 디자이너:"
-    )
-)
+    if not os.path.exists(persist_directory) or not os.listdir(persist_directory):
+        # 데이터 로드 및 전처리
+        data_dir = "crawled_data"
+        docs = load_and_split_documents(data_dir)
 
-# 요약을 위한 프롬프트 템플릿
-summary_prompt_template = PromptTemplate(
-    input_variables=["conversation_history"],
-    template=(
-        "당신은 전문 헤어 디자이너입니다. 다음은 사용자와의 대화 내용입니다:\n"
-        "{conversation_history}\n"
-        "사용자가 원하는 머리스타일을 간단히 요약해 주세요."
-    )
-)
+        # 벡터 임베딩 및 데이터베이스 생성
+        db = create_vector_store(docs, model_name, persist_directory, collection_metadata)
+    else:
+        # 벡터 데이터베이스 로드
+        db = load_vector_store(persist_directory, model_name)
 
-# LLMChain 설정
-llm_chain = LLMChain(
-    llm=OpenAI(api_key=openai_api_key, max_tokens=150, temperature=0.7, top_p=0.9),
-    prompt=initial_prompt_template
-)
+    # LLM 및 RAG 설정
+    prompt_template = (
+        "너는 친절하고 유머 감각이 뛰어난 헤어봇이야 "
+        "유저가 너에게 헤어 스타일과 관련된 질문을 하면 헤어스타일에 대한 설명을 해줘."
+        "답변에는 언제나 친절하게 높임말을 사용해서 대답을 해야해. "
+        "retriever 검색 정보를 사용하고 추가로 정보를 검색하여 답변에 포함시켜줘. "
+        "만약 답변을 모르는 경우 솔직하게 '모르겠다'고 말해줘."
+            )
+    llm_model_name = "gpt-4o"
+    temperature = 0.8
+    max_tokens = 1024
+    qa = setup_llm_and_retrieval_qa(db, llm_model_name, temperature, max_tokens, prompt_template)
 
-conversation_history = []
-
-def chat():
-    initial_message = "안녕하세요! 어떤 머리스타일을 원하시나요?"
-    print(f"전문 헤어 디자이너: {initial_message}")
-    conversation_history.append(f"전문 헤어 디자이너: {initial_message}")
-    
-    while True:
-        user_input = input("사용자: ")
-        if user_input.lower() in ["종료", "끝"]:
-            break
-        
-        conversation_history.append(f"사용자: {user_input}")
-        
-        # 대화 이력을 문자열로 결합
-        conversation_text = "\n".join(conversation_history)
-        
-        # LLMChain 실행
-        ongoing_chain = LLMChain(
-            llm=OpenAI(api_key=openai_api_key, max_tokens=150, temperature=0.7, top_p=0.9),
-            prompt=ongoing_prompt_template
-        )
-        response = ongoing_chain.run(conversation_history=conversation_text, input_text=user_input)
-        
-        conversation_history.append(f"전문 헤어 디자이너: {response.strip()}")
-        print(f"전문 헤어 디자이너: {response.strip()}")
-    
-    # 요약 프롬프트 실행
-    summary_chain = LLMChain(
-        llm=OpenAI(api_key=openai_api_key, max_tokens=150, temperature=0.7, top_p=0.9),
-        prompt=summary_prompt_template
-    )
-    conversation_text = "\n".join(conversation_history)
-    summary_response = summary_chain.run(conversation_history=conversation_text)
-    
-    print(f"\n대화 요약: {summary_response.strip()}")
+    # 챗봇 실행
+    run_chatbot(qa)
 
 if __name__ == "__main__":
-    chat()
+    main()
