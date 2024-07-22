@@ -65,8 +65,4 @@ result_image_path = result[0]['value']
 
 # Display the result image
 result_image = Image.open(result_image_path)
-<<<<<<< HEAD
 result_image.show()
-=======
-result_image.show()
->>>>>>> b4f7cf9ac16963340719684ad07c7555c71a65b4
