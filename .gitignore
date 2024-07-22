@@ -17,6 +17,10 @@ hairstyles_male.csv
 chroma_db/
 images_female/
 images_male/
+image_class.py
+image_clas.py
+overlap.py
+
 
 output/
 CelebA/
