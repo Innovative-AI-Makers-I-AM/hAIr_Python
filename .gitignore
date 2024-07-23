@@ -6,6 +6,8 @@
 # images 경로 제외
 /images/*
 /__pycache__/*
+/chroma/*
+/docs/*
 
 /pretrained_models/
 __pycache__/
