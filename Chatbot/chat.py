@@ -5,8 +5,5 @@ def run_chatbot(qa):
             break
         for token in qa.stream({"query": query}):
             print(token['result'], end='', flush=True)
-<<<<<<< HEAD
+
         print()
-=======
-        print()
->>>>>>> b4f7cf9ac16963340719684ad07c7555c71a65b4
