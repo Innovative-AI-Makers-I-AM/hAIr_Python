@@ -35,26 +35,14 @@ def main():
         "답변에는 언제나 친절하게 높임말을 사용해서 대답을 해야해. "
         "retriever 검색 정보를 사용하고 추가로 정보를 검색하여 답변에 포함시켜줘. "
         "만약 답변을 모르는 경우 솔직하게 '모르겠다'고 말해줘."
-<<<<<<< HEAD
-            )
-=======
-    )
->>>>>>> b4f7cf9ac16963340719684ad07c7555c71a65b4
+        )
     llm_model_name = "gpt-4o"
     temperature = 0.8
     max_tokens = 1024
     qa = setup_llm_and_retrieval_qa(db, llm_model_name, temperature, max_tokens, prompt_template)
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> b4f7cf9ac16963340719684ad07c7555c71a65b4
     # 챗봇 실행
     run_chatbot(qa)
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     main()
-=======
-    main()
->>>>>>> b4f7cf9ac16963340719684ad07c7555c71a65b4

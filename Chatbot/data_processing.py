@@ -9,8 +9,6 @@ def load_and_split_documents(data_dir):
             loader = TextLoader(f"{data_dir}/{file}", encoding="utf-8")
             documents.extend(loader.load())
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
-<<<<<<< HEAD
+
     return text_splitter.split_documents(documents)
-=======
-    return text_splitter.split_documents(documents)
->>>>>>> b4f7cf9ac16963340719684ad07c7555c71a65b4
+

@@ -22,8 +22,5 @@ def setup_llm_and_retrieval_qa(db, model_name, temperature, max_tokens, prompt_t
         memory=memory,
         chain_type_kwargs={"prompt": chat_prompt}
     )
-<<<<<<< HEAD
+
     return qa
-=======
-    return qa
->>>>>>> b4f7cf9ac16963340719684ad07c7555c71a65b4

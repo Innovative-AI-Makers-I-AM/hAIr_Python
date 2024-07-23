@@ -9,8 +9,4 @@ def create_vector_store(docs, model_name, persist_directory, collection_metadata
 def load_vector_store(persist_directory, model_name):
     embeddings = HuggingFaceInstructEmbeddings(model_name=model_name)
     db = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
-<<<<<<< HEAD
     return db
-=======
-    return db
->>>>>>> b4f7cf9ac16963340719684ad07c7555c71a65b4
