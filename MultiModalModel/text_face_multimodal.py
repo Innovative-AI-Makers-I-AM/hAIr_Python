@@ -15,13 +15,12 @@ set_seed(42)
 
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import AutoTokenizer, AutoModel
+from sentence_transformers import SentenceTransformer
 from torchvision import models, transforms
 from PIL import Image
 
 # 텍스트 임베딩 모델 로드
-tokenizer = AutoTokenizer.from_pretrained("upskyy/kf-deberta-multitask")
-text_model = AutoModel.from_pretrained("upskyy/kf-deberta-multitask")
+text_model = SentenceTransformer('snunlp/KR-SBERT-V40K-klueNLI-augSTS')
 text_model.eval()
 
 # 얼굴 유형 분류 모델 로드
@@ -29,26 +28,13 @@ face_model = models.resnet18(pretrained=True)
 face_model.fc = nn.Identity()  # 마지막 레이어를 제거하여 512차원 출력 유지
 face_model.eval()
 
-# 텍스트 전처리 함수
-def preprocess_text(text):
-    encoded_input = tokenizer(text, padding=True, truncation=True, return_tensors='pt')
-    return encoded_input
-
-# 평균 풀링 함수
-def mean_pooling(model_output, attention_mask):
-    token_embeddings = model_output[0]
-    input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
-    return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
-
 # 텍스트 임베딩 추출 함수
 def get_text_embedding(text):
     if not text:
         return torch.zeros((1, 768))  # 텍스트가 없을 경우 0으로 채운 임베딩 반환
-    inputs = preprocess_text(text)
     with torch.no_grad():
-        model_output = text_model(**inputs)
-    sentence_embeddings = mean_pooling(model_output, inputs['attention_mask'])
-    return sentence_embeddings
+        text_embedding = text_model.encode(text, convert_to_tensor=True)
+    return text_embedding.unsqueeze(0)  # 배치 차원 추가
 
 # 이미지 전처리 함수
 transform = transforms.Compose([
@@ -116,18 +102,9 @@ def predict_class(logits):
     predicted_class = torch.argmax(probabilities, dim=1)
     return predicted_class, probabilities
 
-# 실행 파일의 디렉토리를 기준으로 이미지 경로 설정
-current_dir = os.path.dirname(os.path.abspath(__file__))
-image_path = os.path.join(current_dir, '..', 'images', 'KakaoTalk_20240709_134904035.jpg')
-
-# 파일이 존재하는지 확인
-if not os.path.exists(image_path):
-    raise FileNotFoundError(f"File not found: {image_path}")
-
 # 예시 입력 데이터
-text = "안녕하세요? 한국어 문장 임베딩을 위한 모델입니다."
-# text = ""
-# image_path = "";
+text = "남성_CUT_미디엄_댄디컷_1,images\남성_CUT_미디엄_댄디컷_1.jpg,남성,CUT,미디엄,댄디컷,수석실장 주미,메이원헤어 성수점,#댄디컷,#댄디펌,#볼륨펌"
+image_path = '남성_CUT_미디엄_댄디컷_1.jpg'
 
 # 예측 실행 (텍스트와 이미지 둘 다 입력)
 outputs, text_embedding, face_embedding, combined_embedding = predict(text, image_path)
