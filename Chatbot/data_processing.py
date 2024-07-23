@@ -7,8 +7,8 @@ def load_and_split_documents(data_dir):
     for file in os.listdir(data_dir):
         if file.endswith(".txt"):
             loader = TextLoader(f"{data_dir}/{file}", encoding="utf-8")
-            documents.extend(loader.load())
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
+            documents.extend(loader.load_and_split())
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100, length_function = len,)
 
     return text_splitter.split_documents(documents)
 

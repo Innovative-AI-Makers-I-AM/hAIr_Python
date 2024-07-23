@@ -13,7 +13,7 @@ def setup_llm_and_retrieval_qa(db, model_name, temperature, max_tokens, prompt_t
         HumanMessagePromptTemplate.from_template("Context:\n{context}\n\n{question}")
     ])
 
-    retriever = db.as_retriever(search_type="mmr", search_kwargs={'k': 3, 'fetch_k': 5})
+    retriever = db.as_retriever(search_type="mmr", search_kwargs={'k': 3, 'fetch_k': 10})
     qa = RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
