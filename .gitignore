@@ -8,8 +8,8 @@
 /__pycache__/*
 /chroma/*
 /docs/*
-/hair_description/*
-/hair_image/*
+/songgaram/hair_description/*
+/songgaram/hair_image/*
 
 /pretrained_models/
 __pycache__/
