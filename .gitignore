@@ -5,6 +5,9 @@
 # images 경로 제외
 /images/*
 /__pycache__/*
+/hair_description/*
+/hair_image/*
+/chroma/*
 
 /pretrained_models/
 __pycache__/
