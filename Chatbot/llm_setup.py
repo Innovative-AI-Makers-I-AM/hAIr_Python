@@ -34,6 +34,9 @@ def setup_llm_and_retrieval_qa(db, model_name, temperature, max_tokens, prompt_t
 
     return qa
 
+
+#----------------------------------- 필요 없는 코드------------------------------------------
+
 # from langchain_openai import ChatOpenAI
 # from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 # from langchain.chains import RetrievalQA

@@ -27,3 +27,4 @@ def batch_process_documents(data_dir, batch_size, model_name, persist_directory,
             db = load_vector_store(persist_directory, model_name)
             db.add_documents(split_docs)
 
+    
