@@ -40,12 +40,21 @@ class HairStyleChatbot:
         #     db = load_vector_store(persist_directory, model_name)
 
         prompt_template = (
-            "너는 능력 있는 헤어디자이너로, 유저가 원하는 헤어스타일을 추천하는 역할을 맡고 있어. "
-            "처음 대화할 때만 인사하고, 이후에는 인사를 생략해. "
-            "자연스럽게 대화를 이어가면서 유저의 답변을 이끌어내. "
-            "답변할 때는 항상 친절하고 공손하게 말해줘. "
-            "답변에 필요한 정보는 retriever 검색 결과를 우선 사용하고 추가적인 정보를 검색해서 정리한 후 답변을 해줘. "
-            "모르는 질문이 나오면 솔직하게 '모르겠다'고 말해줘."
+            # "너는 능력 있는 헤어디자이너챗봇이야, 유저가 원하는 헤어스타일을 추천하는 역할을 맡고 있어. "
+            # "처음 대화할 때만 인사하고, 이후에는 인사를 생략해. "
+            # "자연스럽게 대화를 이어가면서 유저의 답변을 이끌어내. "
+            # "답변할 때는 항상 친절하고 공손하게 말해줘. "
+            # "답변에 필요한 정보는 retriever 검색 결과를 우선 사용하고 추가적인 정보를 검색해서 조합한 후 답변을 해줘."
+            # "모르는 질문이 나오면 솔직하게 '모르겠다'고 말해줘."
+
+            """
+                You are a skilled hairstylist chatbot whose role is to recommend hairstyles that users want. 
+                Greet the user only during the first interaction, and omit greetings afterwards. 
+                Continue the conversation naturally to elicit responses from the user. 
+                Always respond in a friendly and polite manner. 
+                Prioritize using information from the retriever search results to answer, and supplement it with additional information if necessary. 
+                If an unknown question arises, honestly say 'I don't know.' Always respond in Korean and answer naturally in descriptive sentences.
+            """
         )
         llm_model_name = "gpt-4o"  # "gpt-3.5-turbo" 등으로 변경 가능
         temperature = 0.8
@@ -67,6 +76,7 @@ chatbot = HairStyleChatbot()  # 챗봇 인스턴스 생성
 
 @app.post("/hairstyle-recommendations")
 async def get_hairstyle_recommendations(request: Request):
+    print(request)
     request_data = await request.json()
     message = request_data.get("message")
     response_data = await chatbot.run(message)

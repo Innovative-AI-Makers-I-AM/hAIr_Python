@@ -16,7 +16,7 @@ def setup_llm_and_retrieval_qa(db, model_name, temperature, max_tokens, prompt_t
         HumanMessagePromptTemplate.from_template("Context:\n{context}\n\n{question}")
     ])
 
-    retriever = db.as_retriever(search_type="mmr", search_kwargs={'k': 3, 'fetch_k': 15})
+    retriever = db.as_retriever(search_type="mmr", search_kwargs={'k': 3, 'fetch_k': 20})
 
     # Document Transformer 적용
     document_transformer = LongContextReorder()
