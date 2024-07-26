@@ -76,6 +76,9 @@ async def face_analysis(image: UploadFile = File(...)):
                 "size": img.size,
                 "mode": img.mode
             }
+
+        # 여기에 얼굴 분석 로직을 추가할 수 있습니다.
+        # 예: face_analysis_result = analyze_face(file_location
         
         return JSONResponse(content={
             "message": "Image uploaded successfully",
