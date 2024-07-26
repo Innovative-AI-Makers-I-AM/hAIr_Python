@@ -5,6 +5,7 @@ from torchvision import transforms
 import zipfile
 import io
 import chromadb
+from langchain_community.vectorstores import Chroma
 from chromadb.api.models.Collection import Collection
 import numpy as np
 from langchain.retrievers import EnsembleRetriever, BM25Retriever, TimeWeightedVectorStoreRetriever

@@ -149,14 +149,48 @@
 # print("크롤링이 완료되었습니다. docx 파일들이 저장되었습니다.")
 
 
-from chromadb import PersistentClient
-client = PersistentClient()
-collections = client.list_collections()
-collection_names = [coll.name for coll in collections]
-print(f'1. collection list :  {[collection_names]}')
-collection_name = 'test_embeddings'
-client.delete_collection(name=collection_name)
-print(f'기존 컬렉션 {collection_name}을 삭제했습니다.')
-collections = client.list_collections()
-collection_names = [coll.name for coll in collections]
-print(f'2. collection list :  {[collection_names]}')
+# from chromadb import PersistentClient
+# client = PersistentClient()
+# collections = client.list_collections()
+# collection_names = [coll.name for coll in collections]
+# print(f'1. collection list :  {[collection_names]}')
+# collection_name = '삭제할 collection 명'
+# client.delete_collection(name=collection_name)
+# print(f'기존 컬렉션 {collection_name}을 삭제했습니다.')
+# collections = client.list_collections()
+# collection_names = [coll.name for coll in collections]
+# print(f'2. collection list :  {[collection_names]}')
+
+from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceInstructEmbeddings
+
+# 데이터 확인 함수
+def fetch_all_data(collection_name, persist_directory, model_name):
+    # 임베딩 모델 초기화
+    embeddings = HuggingFaceInstructEmbeddings(model_name=model_name)
+    
+    # Chroma 데이터베이스에 연결
+    db = Chroma(collection_name=collection_name, persist_directory=persist_directory, embedding_function=embeddings)
+    
+    # 저장된 데이터 가져오기
+    stored_data = db.get(include=["documents", "embeddings", "metadatas"])
+    return stored_data
+
+# 실행 로직
+if __name__ == "__main__":
+    # 컬렉션 및 디렉토리 정보
+    persist_directory = "./chroma_db"
+    collection_name = "hair_description1"
+    model_name = "snunlp/KR-SBERT-V40K-klueNLI-augSTS"
+    
+    # 저장된 모든 데이터 가져오기
+    all_data = fetch_all_data(collection_name, persist_directory, model_name)
+    
+    # 데이터 출력
+    print("Chroma에 저장된 모든 데이터:")
+    for i in range(len(all_data['ids'])):
+        print(f"ID: {all_data['ids'][i]}")
+        print(f"Document: {all_data['documents'][i][:100]}...")  # 일부만 출력
+        print(f"Embedding (first 5 elements): {all_data['embeddings'][i][:5]}")
+        print(f"Metadata: {all_data['metadatas'][i]}")
+        print("---")
