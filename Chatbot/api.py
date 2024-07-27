@@ -69,6 +69,8 @@ if __name__ == "__api__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
+#----------------------------------- 필요 없는 코드------------------------------------------
+
 
 # import os
 # from dotenv import load_dotenv
