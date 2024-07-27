@@ -1,6 +1,6 @@
 import os
 #추가
-from batch_processor import batch_process_documents
+from Chatbot.batch_processor import batch_process_documents
 
 def main():
     persist_directory = "./chroma_db"

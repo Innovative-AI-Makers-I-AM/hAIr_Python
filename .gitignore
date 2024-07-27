@@ -26,11 +26,15 @@ images_male/
 image_class.py
 image_clas.py
 overlap.py
+app.py
+face.py
+HFG_api.py
 copy/
 copy1/
 crawled_data_before/
 Chatbot/hairstyles_filtered.csv
 Chatbot/new_hairstyles_filtered.csv
+
 
 
 output/

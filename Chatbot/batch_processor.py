@@ -1,7 +1,7 @@
 import os
 from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from vector_store import create_vector_store, load_vector_store
+from Chatbot.vector_store import create_vector_store, load_vector_store
 
 def batch_process_documents(data_dir, batch_size, model_name, persist_directory, collection_metadata):
     files = [f for f in os.listdir(data_dir) if f.endswith(".txt")]
