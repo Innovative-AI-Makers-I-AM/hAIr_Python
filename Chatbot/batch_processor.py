@@ -17,7 +17,7 @@ def batch_process_documents(data_dir, batch_size, model_name, persist_directory,
             print(f"Loaded {len(loaded_docs)} documents from {file}")
             documents.extend(loaded_docs)
         
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100, length_function=len)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100, length_function=len)
         split_docs = text_splitter.split_documents(documents)
         print(f"Total number of split documents: {len(split_docs)}")
         
