@@ -108,14 +108,6 @@ class HairStyleChatbot:
 
 chatbot = HairStyleChatbot()
 
-def generate_image_embedding(image_data: bytes):
-    image = Image.open(BytesIO(image_data))
-    inputs = processor(images=image, return_tensors="pt")
-    with torch.no_grad():
-        outputs = model(**inputs)
-    image_embedding = outputs[0].numpy().flatten().tolist()
-    return image_embedding
-
 def generate_image_embedding_with_base_64(image_base64: str):
     image_data = base64.b64decode(image_base64)
     image = Image.open(BytesIO(image_data))
@@ -167,9 +159,26 @@ async def search_hairstyles(request : SearchRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error searching hairstyles: {e}")
 
+
+def generate_image_embedding(image_data: bytes):
+    try:
+        image = Image.open(io.BytesIO(image_data)).convert("RGB")  # 이미지 읽기 및 RGB 형식으로 변환
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid image format: {e}")
+    
+    inputs = processor(images=image, return_tensors="pt")
+    with torch.no_grad():
+        outputs = model(**inputs)
+    image_embedding = outputs[0].numpy().flatten().tolist()
+    return image_embedding
+
 @app.post("/search-hairstyles")
 async def search_hairstyles(file: UploadFile = File(...), sex: Optional[str] = None, length: Optional[str] = None, styles: Optional[str] = None, k: int = 5):
     try:
+        print(f"Received file: {file.filename}")
+        print(f"Received sex: {sex}")
+        print(f"Received length: {length}")
+        print(f"Received styles: {styles}")
         # 이미지 파일을 읽고 Base64 인코딩
         image_data = await file.read()
         search_embedding = generate_image_embedding(image_data)
@@ -180,16 +189,16 @@ async def search_hairstyles(file: UploadFile = File(...), sex: Optional[str] = N
             filter_conditions['length'] = length
         if styles:
             filter_conditions['style'] = styles
-
         results = search_all_collections_with_filter(chroma_client, "image_collection", search_embedding, filter_conditions, k=k)
-        
         # 예제 파일 경로, 실제 파일 경로로 변경 필요
         image_paths = [result[1]['image_path'] for result in results]
         encoded_images = encode_images_to_base64(image_paths)
-        
+        print(encoded_images)
         return {"results": encoded_images}
     except Exception as e:
+        print(f"Error: {e}")
         raise HTTPException(status_code=500, detail=f"Error searching hairstyles: {e}")
+
 
 # HairFastGAN 관련 엔드포인트
 @app.get("/")

@@ -34,6 +34,8 @@ copy1/
 crawled_data_before/
 Chatbot/hairstyles_filtered.csv
 Chatbot/new_hairstyles_filtered.csv
+chroma_image_db/
+chroma.sqlite3
 
 
 
