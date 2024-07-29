@@ -37,7 +37,6 @@ Chatbot/new_hairstyles_filtered.csv
 chroma_image_db/
 chroma.sqlite3
 
-
 output/
 CelebA/
 test_*/
