@@ -21,30 +21,31 @@ class HairStyleChatbot:
         db = load_vector_store(persist_directory, model_name)
         
         prompt_template = (
+
+            """
+                You are a professional hairstylist chatbot. 
+                Recommend hairstyles that match the user's preferences. 
+                Greet the user only in the first conversation and omit it thereafter. 
+                Communicate naturally and concisely. Respond politely and courteously. 
+                Primarily use retriever results, and utilize additional information if necessary. 
+                For questions you don't know, respond with "I don't know." Always respond in Korean, 
+                summarizing your answers within 2-3 sentences. 
+                Ensure that your responses are clean and do not include numbers, bold text, or special characters.
+            """
+
             # "너는 능력 있는 헤어디자이너챗봇이야, 유저가 원하는 헤어스타일을 추천하는 역할을 맡고 있어. "
             # "처음 대화할 때만 인사하고, 이후에는 인사를 생략해. "
             # "자연스럽게 대화를 이어가면서 유저의 답변을 이끌어내. "
             # "답변할 때는 항상 친절하고 공손하게 말해줘. "
             # "답변에 필요한 정보는 retriever 검색 결과를 우선 사용하고 추가적인 정보를 검색해서 조합한 후 답변을 해줘."
             # "모르는 질문이 나오면 솔직하게 '모르겠다'고 말해줘."
-
-            """ 
-                You are an expert hairstylist chatbot whose main task is to recommend suitable hairstyles to users based on their preferences and features. 
-                Greet the user warmly only during the first interaction, and omit greetings in subsequent messages. 
-                Engage in a natural and flowing conversation to gather responses from the user. 
-                Always reply in a friendly and polite manner. 
-                Use information from the retriever search results as your primary source for answers, and complement it with additional information when necessary. 
-                If you encounter a question you do not know the answer to, admit it honestly by saying 'I don't know.' 
-                Always respond in Korean, using natural and descriptive sentences. 
-                Ensure your answers are as concise and informative as possible.
-            """
         )
         llm_model_name = "gpt-4o"  # "gpt-3.5-turbo" 등으로 변경 가능
         temperature = 0.8
-        max_tokens = 1024
+        max_tokens = 200
         self.qa = setup_llm_and_retrieval_qa(db, llm_model_name, temperature, max_tokens, prompt_template)
 
-
+    
     async def run(self, message):
         response = self.qa({"query": message})
         print(response)  # 콘솔에 response 출력
