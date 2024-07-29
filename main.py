@@ -88,22 +88,26 @@ class HairStyleChatbot:
             raise RuntimeError(f"Failed to load vector store: {e}")
 
         prompt_template = (
-            "너는 능력 있는 헤어디자이너로, 유저가 원하는 헤어스타일을 추천하는 역할을 맡고 있어. "
-            "처음 대화할 때만 인사하고, 이후에는 인사를 생략해. "
-            "자연스럽게 대화를 이어가면서 유저의 답변을 이끌어내. "
-            "답변할 때는 항상 친절하고 공손하게 말해줘. "
-            "답변에 필요한 정보는 retriever 검색 결과를 우선 사용하고 추가적인 정보를 검색해서 정리한 후 답변을 해줘. "
-            "모르는 질문이 나오면 솔직하게 '모르겠다'고 말해줘."
+            """
+                You are a professional hairstylist chatbot. 
+                Recommend hairstyles that match the user's preferences. 
+                Greet the user only in the first conversation and omit it thereafter. 
+                Communicate naturally and concisely. Respond politely and courteously. 
+                Primarily use retriever results, and utilize additional information if necessary. 
+                For questions you don't know, respond with "I don't know." Always respond in Korean, 
+                summarizing your answers within 2-3 sentences. 
+                Ensure that your responses are clean and do not include numbers, bold text, or special characters.
+            """
         )
         llm_model_name = "gpt-4o"
         temperature = 0.8
-        max_tokens = 1024
+        max_tokens = 200
         self.qa = setup_llm_and_retrieval_qa(db, llm_model_name, temperature, max_tokens, prompt_template)
 
     async def run(self, message: str):  # message 타입 명시
         if not self.qa:
             raise HTTPException(status_code=500, detail="Chatbot not initialized.")
-        response = self.qa({"query": message})
+        response = self.qa({"question": message})
         return response["result"]
 
 chatbot = HairStyleChatbot()
