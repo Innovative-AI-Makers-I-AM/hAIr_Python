@@ -31,6 +31,7 @@ class HairStyleChatbot:
                 For questions you don't know, respond with "I don't know." Always respond in Korean, 
                 summarizing your answers within 2-3 sentences. 
                 Ensure that your responses are clean and do not include numbers, bold text, or special characters.
+                Remember previous conversations and use that context to answer questions consistently.
             """
 
             # "너는 능력 있는 헤어디자이너챗봇이야, 유저가 원하는 헤어스타일을 추천하는 역할을 맡고 있어. "
@@ -41,7 +42,7 @@ class HairStyleChatbot:
             # "모르는 질문이 나오면 솔직하게 '모르겠다'고 말해줘."
         )
         llm_model_name = "gpt-4o"  # "gpt-3.5-turbo" 등으로 변경 가능
-        temperature = 0.8
+        temperature = 0.7
         max_tokens = 200
         self.qa = setup_llm_and_retrieval_qa(db, llm_model_name, temperature, max_tokens, prompt_template)
 
