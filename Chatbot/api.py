@@ -47,7 +47,7 @@ class HairStyleChatbot:
 
     
     async def run(self, message):
-        response = self.qa({"query": message})
+        response = self.qa({"question": message})
         print(response)  # 콘솔에 response 출력
         return response["result"]
 
