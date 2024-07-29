@@ -2,7 +2,7 @@ import os
 import base64
 from io import BytesIO
 from typing import Optional, List
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, Form, File, UploadFile
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -177,16 +177,24 @@ def generate_image_embedding(image_data: bytes):
     return image_embedding
 
 @app.post("/search-hairstyles")
-async def search_hairstyles(file: UploadFile = File(...), sex: Optional[str] = None, length: Optional[str] = None, styles: Optional[str] = None, k: int = 5):
+async def search_hairstyles(
+    file: UploadFile = File(...),
+    sex: str = Form(...),
+    length: str = Form(...),
+    styles: str = Form(...),
+    k: int = 5
+):
     try:
         print(f"Received file: {file.filename}")
         print(f"Received sex: {sex}")
         print(f"Received length: {length}")
         print(f"Received styles: {styles}")
+
         # 이미지 파일을 읽고 Base64 인코딩
         image_data = await file.read()
         search_embedding = generate_image_embedding(image_data)
         filter_conditions = {}
+
         if sex:
             filter_conditions['sex'] = sex
         if length:
@@ -194,10 +202,11 @@ async def search_hairstyles(file: UploadFile = File(...), sex: Optional[str] = N
         if styles:
             filter_conditions['style'] = styles
         results = search_all_collections_with_filter(chroma_client, "image_collection", search_embedding, filter_conditions, k=k)
+        
         # 예제 파일 경로, 실제 파일 경로로 변경 필요
         image_paths = [result[1]['image_path'] for result in results]
         encoded_images = encode_images_to_base64(image_paths)
-        print(encoded_images)
+        # print(encoded_images)
         return {"results": encoded_images}
     except Exception as e:
         print(f"Error: {e}")

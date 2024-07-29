@@ -63,7 +63,7 @@ def search_chroma_with_filter(chroma_client, collection_name, query_embedding, f
             n_results=k,
             where=filter_query
         )
-        print(f"Query results: {results}")
+        # print(f"Query results: {results}")
     except Exception as e:
         print(f"Error during ChromaDB query: {e}")
         raise e
