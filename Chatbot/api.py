@@ -21,17 +21,19 @@ class HairStyleChatbot:
         db = load_vector_store(persist_directory, model_name)
         
         prompt_template = (
-
             """
                 You are a professional hairstylist chatbot. 
                 Recommend hairstyles that match the user's preferences. 
                 Greet the user only in the first conversation and omit it thereafter. 
                 Communicate naturally and concisely. Respond politely and courteously. 
-                Primarily use retriever results, and utilize additional information if necessary. 
+                
                 For questions you don't know, respond with "I don't know." Always respond in Korean, 
                 summarizing your answers within 2-3 sentences. 
                 Ensure that your responses are clean and do not include numbers, bold text, or special characters.
                 Remember previous conversations and use that context to answer questions consistently.
+                
+                Do not include unnecessary information that does not align with the user's question. Provide only accurate and relevant content.
+                If the user asks for a summary, provide a summary based solely on the conversation without adding any additional information
             """
 
             # "너는 능력 있는 헤어디자이너챗봇이야, 유저가 원하는 헤어스타일을 추천하는 역할을 맡고 있어. "
@@ -42,13 +44,23 @@ class HairStyleChatbot:
             # "모르는 질문이 나오면 솔직하게 '모르겠다'고 말해줘."
         )
         llm_model_name = "gpt-4o"  # "gpt-3.5-turbo" 등으로 변경 가능
-        temperature = 0.7
-        max_tokens = 200
+        temperature = 0.6
+        max_tokens = 300
         self.qa = setup_llm_and_retrieval_qa(db, llm_model_name, temperature, max_tokens, prompt_template)
 
     
     async def run(self, message):
+        #추가
+        # inputs = {
+        #     "question": message,
+        #     "chat_history": self.qa.memory.chat_memory.messages,
+        #     "context": self.qa.retriever.get_relevant_documents(message)
+        # }
+
         response = self.qa({"question": message})
+        #추가
+        # response = self.qa(inputs)
+
         print(response)  # 콘솔에 response 출력
         return response["result"]
 
