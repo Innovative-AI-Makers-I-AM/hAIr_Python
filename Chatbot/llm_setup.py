@@ -22,7 +22,8 @@ def setup_llm_and_retrieval_qa(db, model_name, temperature, max_tokens, prompt_t
     # 대화 프롬프트 템플릿을 설정, 사용자 입력을 포함
     chat_prompt = ChatPromptTemplate.from_messages([
         system_message_prompt,
-        HumanMessagePromptTemplate.from_template("Context:\n{context}\n\n{question}")
+        # HumanMessagePromptTemplate.from_template("Context:\n{context}\n\n{question}")
+        HumanMessagePromptTemplate.from_template("Context:\n{chat_history}\n\nDocuments:\n{context}\n\n{question}")
     ])
 
     # 데이터베이스에서 문서를 검색하기 위한 retriever 설정, MMR (Maximal Marginal Relevance) 알고리즘을 사용
@@ -33,7 +34,8 @@ def setup_llm_and_retrieval_qa(db, model_name, temperature, max_tokens, prompt_t
         llm=llm,  # 언어 모델 설정
         retriever=retriever,  # 문서 검색기 설정
         memory=memory,  # 대화 문맥을 기억하는 메모리 설정
-        combine_docs_chain_kwargs={"prompt": chat_prompt},  # 문서를 결합할 때 사용할 프롬프트 설정
+        # combine_docs_chain_kwargs={"prompt": chat_prompt},  # 문서를 결합할 때 사용할 프롬프트 설정
+        combine_docs_chain_kwargs={"prompt": chat_prompt, "document_variable_name": "context"},  # 문서를 결합할 때 사용할 프롬프트 설정
         return_source_documents=True,   # 소스 문서를 반환하도록 설정
         return_generated_question=True, # 생성된 질문을 반환하도록 설정
         # 이 줄을 추가

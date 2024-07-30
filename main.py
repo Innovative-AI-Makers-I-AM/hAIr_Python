@@ -93,10 +93,14 @@ class HairStyleChatbot:
                 Recommend hairstyles that match the user's preferences. 
                 Greet the user only in the first conversation and omit it thereafter. 
                 Communicate naturally and concisely. Respond politely and courteously. 
-                Primarily use retriever results, and utilize additional information if necessary. 
+                
                 For questions you don't know, respond with "I don't know." Always respond in Korean, 
                 summarizing your answers within 2-3 sentences. 
                 Ensure that your responses are clean and do not include numbers, bold text, or special characters.
+                Remember previous conversations and use that context to answer questions consistently.
+                
+                Do not include unnecessary information that does not align with the user's question. Provide only accurate and relevant content.
+                If the user asks for a summary, provide a summary based solely on the conversation without adding any additional information
             """
         )
         llm_model_name = "gpt-4o"
